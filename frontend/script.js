@@ -58,6 +58,34 @@ function parseExperience(text) {
     return experienceObject;
 }
 
+document.querySelector('form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    
+    // Add the parsed experience data
+    formData.append('experiences', JSON.stringify(parsedExperienceData));
+
+    try {
+        const response = await fetch('http://localhost:3000/api/submit-application', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Application submitted successfully!');
+            event.target.reset();
+        } else {
+            alert('Error submitting application: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error submitting application');
+    }
+});
+
 document.getElementById('resumeUpload').addEventListener('change', async (event) => {
     const file = event.target.files[0];
     if (!file) return alert('Please upload a PDF file');
@@ -73,9 +101,14 @@ document.getElementById('resumeUpload').addEventListener('change', async (event)
 
         const parsedContent = parseSections(textContent);
         const educationObject = parseEducation(parsedContent.education);
-        const experienceObject = parseExperience(parsedContent.experience);
-        console.log(educationObject);
-        console.log(experienceObject)
+        parsedExperienceData = parseExperience(parsedContent.experience);
+
+          if (parsedExperienceData.length > 0) {
+            const latestExp = parsedExperienceData[0];
+            document.getElementById('address').value = latestExp.organisation;
+            document.getElementById('address2').value = latestExp.position;
+            document.getElementById('message').value = latestExp.description;
+        }
     } catch (error) {
         console.error('Error processing PDF:', error);
     }
