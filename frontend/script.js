@@ -1,8 +1,17 @@
 function parseSections(text) {
+    const lines = text.trim().split('\n');
+    const firstName = lines[0].trim().slice(4);
+    const lastName = lines[2].trim()
+    const phoneNumber = text.match(/PHONE:\s*\n(.*)/);
+    const email = text.match(/EMAIL:\s*\n(.*)/);
     const educationSection = text.match(/EDUCATION([\s\S]*?)EXPERIENCE/);
     const experienceSection = text.match(/EXPERIENCE([\s\S]*?)CERTIFICATIONS/);
 
     return {
+        firstName: firstName,
+        lastName: lastName,
+        number: phoneNumber ? phoneNumber[1].trim() : null,
+        email: email ? email[1].trim() : null,
         education: educationSection ? educationSection[1].trim() : null,
         experience: experienceSection ? experienceSection[1].trim() : null,
     };
@@ -10,13 +19,12 @@ function parseSections(text) {
 
 function parseEducation(text) {
     const lines = text.split('\n').filter(line => line.trim() !== "");
-    console.log(lines);
     const educationObject = [];
     for (let i = 0; i < lines.length; i += 3) {
         const education = {
             school: lines[i],
-            degree: lines[i+1],
-            period: lines[i+2]
+            degree: lines[i + 1],
+            period: lines[i + 2]
         };
         educationObject.push(education);
     }
@@ -39,7 +47,7 @@ function parseExperience(text) {
                 if (count == 3) {
                     j++;
                     break;
-                } 
+                }
                 else {
                     descriptionString += '\n';
                 }
@@ -48,8 +56,8 @@ function parseExperience(text) {
         }
         const experience = {
             organisation: lines[i],
-            position: lines[i+1],
-            period: lines[i+2],
+            position: lines[i + 1],
+            period: lines[i + 2],
             description: descriptionString
         }
         experienceObject.push(experience);
@@ -62,7 +70,7 @@ document.querySelector('form').addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const formData = new FormData(event.target);
-    
+
     // Add the parsed experience data
     formData.append('experiences', JSON.stringify(parsedExperienceData));
 
@@ -73,7 +81,7 @@ document.querySelector('form').addEventListener('submit', async (event) => {
         });
 
         const result = await response.json();
-        
+
         if (result.success) {
             alert('Application submitted successfully!');
             event.target.reset();
@@ -101,13 +109,36 @@ document.getElementById('resumeUpload').addEventListener('change', async (event)
 
         const parsedContent = parseSections(textContent);
         const educationObject = parseEducation(parsedContent.education);
-        parsedExperienceData = parseExperience(parsedContent.experience);
+        const parsedExperienceData = parseExperience(parsedContent.experience);
+        if (parsedContent.firstName) {
+            document.getElementById('firstname').value = parsedContent.firstName;
+        }
 
-          if (parsedExperienceData.length > 0) {
+        if (parsedContent.lastName) {
+            document.getElementById('lastname').value = parsedContent.lastName;
+        }
+
+        if (parsedContent.number) {
+            document.getElementById('areacode').value = parsedContent.number.slice(1, 4);
+            document.getElementById('phone').value = parsedContent.number.slice(6);
+        }
+
+        if (parsedContent.email) {
+            document.getElementById('email').value = parsedContent.email;
+        }
+
+        if (educationObject.length > 0) {
+            const latestEdu = educationObject[0];
+            document.getElementById('school-1').value = latestEdu.school;
+            document.getElementById('period-1').value = latestEdu.period;
+            document.getElementById('degree-1').value = latestEdu.degree;
+        }
+
+        if (parsedExperienceData.length > 0) {
             const latestExp = parsedExperienceData[0];
-            document.getElementById('address').value = latestExp.organisation;
-            document.getElementById('address2').value = latestExp.position;
-            document.getElementById('message').value = latestExp.description;
+            document.getElementById('company').value = latestExp.organisation;
+            document.getElementById('position').value = latestExp.position;
+            document.getElementById('description').value = latestExp.description;
         }
     } catch (error) {
         console.error('Error processing PDF:', error);
