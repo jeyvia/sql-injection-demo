@@ -1,3 +1,7 @@
+// Store parsed data at a higher scope
+let parsedExperienceData = [];
+let parsedEducationData = [];
+
 function parseSections(text) {
     const lines = text.trim().split('\n');
     const firstName = lines[0].trim().slice(4);
@@ -66,13 +70,26 @@ function parseExperience(text) {
     return experienceObject;
 }
 
+// Form submission handler
 document.querySelector('form').addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const formData = new FormData(event.target);
+    
+    // Get the gender value from the select dropdown
+    const genderSelect = document.getElementById('occupation');
+    if (genderSelect) {
+        formData.set('gender', genderSelect.value);  // Use set instead of append in case it's already in formData
+    }
 
-    // Add the parsed experience data
+    // Add the parsed experience and education data
     formData.append('experiences', JSON.stringify(parsedExperienceData));
+    formData.append('education', JSON.stringify(parsedEducationData));
+
+    // Log the form data to verify what's being sent
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
 
     try {
         const response = await fetch('http://localhost:3000/api/submit-application', {
@@ -85,6 +102,9 @@ document.querySelector('form').addEventListener('submit', async (event) => {
         if (result.success) {
             alert('Application submitted successfully!');
             event.target.reset();
+            // Reset the parsed data
+            parsedExperienceData = [];
+            parsedEducationData = [];
         } else {
             alert('Error submitting application: ' + result.message);
         }
@@ -94,6 +114,7 @@ document.querySelector('form').addEventListener('submit', async (event) => {
     }
 });
 
+// PDF upload handler
 document.getElementById('resumeUpload').addEventListener('change', async (event) => {
     const file = event.target.files[0];
     if (!file) return alert('Please upload a PDF file');
@@ -108,8 +129,10 @@ document.getElementById('resumeUpload').addEventListener('change', async (event)
         textContent += text.items.map(item => item.str).join('\n');
 
         const parsedContent = parseSections(textContent);
-        const educationObject = parseEducation(parsedContent.education);
-        const parsedExperienceData = parseExperience(parsedContent.experience);
+        parsedEducationData = parseEducation(parsedContent.education);
+        parsedExperienceData = parseExperience(parsedContent.experience);
+
+        // Populate form fields
         if (parsedContent.firstName) {
             document.getElementById('firstname').value = parsedContent.firstName;
         }
@@ -127,8 +150,8 @@ document.getElementById('resumeUpload').addEventListener('change', async (event)
             document.getElementById('email').value = parsedContent.email;
         }
 
-        if (educationObject.length > 0) {
-            const latestEdu = educationObject[0];
+        if (parsedEducationData.length > 0) {
+            const latestEdu = parsedEducationData[0];
             document.getElementById('school-1').value = latestEdu.school;
             document.getElementById('period-1').value = latestEdu.period;
             document.getElementById('degree-1').value = latestEdu.degree;
@@ -142,5 +165,6 @@ document.getElementById('resumeUpload').addEventListener('change', async (event)
         }
     } catch (error) {
         console.error('Error processing PDF:', error);
+        alert('Error processing PDF file');
     }
 });
