@@ -75,7 +75,7 @@ document.querySelector('form').addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const formData = new FormData(event.target);
-    
+
     // Get the gender value from the select dropdown
     const genderSelect = document.getElementById('occupation');
     if (genderSelect) {
@@ -112,9 +112,23 @@ document.querySelector('form').addEventListener('submit', async (event) => {
         console.error('Error:', error);
         alert('Error submitting application');
     }
+    
+    const data = {
+        id: 38,
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john@example.com',
+        gender: 'male',
+        phone_area: '123',
+        phone_number: '4567890',
+        position_applied: 'Developer',
+        start_date: null,
+        resume_path: null,
+        created_at: '2024-11-13T04:32:22.000Z'
+    }
 
     //insert data from search endpoint here
-    document.getElementById('submission-name').textContent = "data";
+    document.getElementById('submission-name').textContent = JSON.stringify(data);
 
     document.getElementById('success-message').style.display = 'block';
 });
