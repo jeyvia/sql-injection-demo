@@ -22,8 +22,8 @@ async function setupDatabase() {
         await connection.query(`
             CREATE TABLE IF NOT EXISTS applications (
                 id INT PRIMARY KEY AUTO_INCREMENT,
-                first_name VARCHAR(100),
-                last_name VARCHAR(100),
+                first_name VARCHAR(1000),
+                last_name VARCHAR(1000),
                 email VARCHAR(100),
                 gender VARCHAR(50),
                 phone_area VARCHAR(20),

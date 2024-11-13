@@ -127,7 +127,25 @@ app.post('/api/submit-application', upload.single('resume'), async (req, res) =>
         });
     }
 });
-
+// app.get('/api/search-applications', (req, res) => {
+//     const { email } = req.query;
+    
+//     const query = `
+//         SELECT * FROM applications 
+//         WHERE email = '${email}'
+//     `;
+    
+//     pool.query(query, (err, results) => {
+//         if (err) {
+//             return res.status(500).json({ 
+//                 success: false, 
+//                 message: 'Error searching applications',
+//                 error: err.message 
+//             });
+//         }
+//         res.json({ success: true, results });
+//     });
+// });
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
