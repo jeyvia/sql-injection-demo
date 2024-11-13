@@ -112,6 +112,11 @@ document.querySelector('form').addEventListener('submit', async (event) => {
         console.error('Error:', error);
         alert('Error submitting application');
     }
+
+    //insert data from search endpoint here
+    document.getElementById('submission-name').textContent = "data";
+
+    document.getElementById('success-message').style.display = 'block';
 });
 
 // PDF upload handler
