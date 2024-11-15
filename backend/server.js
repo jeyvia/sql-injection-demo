@@ -81,9 +81,25 @@ app.post('/api/submit-application', upload.single('resume'), async (req, res) =>
         } = req.body;
 
         const connection = await promisePool.getConnection();
-        await connection.beginTransaction();
 
         try {
+            // Check for existing email before starting transaction
+            const [existingApplications] = await connection.query(
+                'SELECT id FROM applications WHERE email = ?',
+                [email]
+            );
+
+            if (existingApplications.length > 0) {
+                connection.release();
+                return res.status(400).json({
+                    success: false,
+                    message: 'An application with this email already exists',
+                });
+            }
+
+            // Proceed with transaction if email is unique
+            await connection.beginTransaction();
+
             const [applicationResult] = await connection.query(
                 `INSERT INTO applications 
                 (first_name, last_name, email, gender, phone_area, phone_number, 
@@ -127,25 +143,26 @@ app.post('/api/submit-application', upload.single('resume'), async (req, res) =>
         });
     }
 });
-// app.get('/api/search-applications', (req, res) => {
-//     const { email } = req.query;
+
+app.post('/api/search-applications', (req, res) => {
+    const { email } = req.body;
+    const query = `
+        SELECT * FROM applications 
+        WHERE email = '${email}'
+    `;
     
-//     const query = `
-//         SELECT * FROM applications 
-//         WHERE email = '${email}'
-//     `;
-    
-//     pool.query(query, (err, results) => {
-//         if (err) {
-//             return res.status(500).json({ 
-//                 success: false, 
-//                 message: 'Error searching applications',
-//                 error: err.message 
-//             });
-//         }
-//         res.json({ success: true, results });
-//     });
-// });
+    pool.query(query, (err, results) => {
+        console.log(results);
+        if (err) {
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Error searching applications',
+                error: err.message 
+            });
+        }
+        return res.json({ success: true, results });
+    });
+});
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

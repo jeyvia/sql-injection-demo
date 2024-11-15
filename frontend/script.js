@@ -90,6 +90,10 @@ document.querySelector('form').addEventListener('submit', async (event) => {
     for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
     }
+    const emailData = {
+        email: formData.get('email')
+    };
+    console.log(emailData);
 
     try {
         const response = await fetch('http://localhost:3000/api/submit-application', {
@@ -100,11 +104,30 @@ document.querySelector('form').addEventListener('submit', async (event) => {
         const result = await response.json();
 
         if (result.success) {
+
+            const response = await fetch('http://localhost:3000/api/search-applications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(emailData)
+            });
+            const data = await response.json();
+            console.log(data.results);
+            const name = data.results[0].first_name + " " + data.results[0].last_name;
+            const email = data.results[0].email;
+            const phone = data.results[0].phone_number;
+
             alert('Application submitted successfully!');
             event.target.reset();
             // Reset the parsed data
             parsedExperienceData = [];
             parsedEducationData = [];
+            document.getElementById('submission-name').textContent = name;
+            document.getElementById('submission-phone').textContent = phone;
+            document.getElementById('submission-email').textContent = email;
+
+            document.getElementById('success-message').style.display = 'block';
         } else {
             alert('Error submitting application: ' + result.message);
         }
@@ -112,25 +135,6 @@ document.querySelector('form').addEventListener('submit', async (event) => {
         console.error('Error:', error);
         alert('Error submitting application');
     }
-    
-    const data = {
-        id: 38,
-        first_name: 'John',
-        last_name: 'Doe',
-        email: 'john@example.com',
-        gender: 'male',
-        phone_area: '123',
-        phone_number: '4567890',
-        position_applied: 'Developer',
-        start_date: null,
-        resume_path: null,
-        created_at: '2024-11-13T04:32:22.000Z'
-    }
-
-    //insert data from search endpoint here
-    document.getElementById('submission-name').textContent = JSON.stringify(data);
-
-    document.getElementById('success-message').style.display = 'block';
 });
 
 // PDF upload handler
